@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:id="@+id/appbar"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="@color/themeColor"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:paddingLeft="10dp"
+            android:text="Transaction"
+            android:textColor="#fff"
+            android:textStyle="bold" />
+
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvPendingAmount"
+        android:layout_below="@id/appbar"
+        android:layout_width="match_parent"
+        android:inputType="textCapSentences"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+
+        android:gravity="center_vertical"
+        android:padding="10dp"
+        android:text="Pending Amount :" />
+    <LinearLayout
+        android:id="@+id/custlayout"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_below="@id/tvPendingAmount"
+        android:layout_marginRight="10dp">
+
+        <TextView
+            android:layout_width="100dp"
+            android:inputType="textCapSentences"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:paddingLeft="10dp"
+            android:text="Amount" />
+
+        <EditText
+            android:id="@+id/settlementAmount"
+            android:paddingLeft="10dp"
+            android:gravity="center_vertical"
+            android:textSize="12sp"
+            android:singleLine="true"
+            android:maxLines="1"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:inputType="number"
+            android:background="@drawable/bg_light_gray_shade" />
+    </LinearLayout>
+    <TextView
+        android:id="@+id/btnSaveSettlement"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_below="@+id/custlayout"
+        android:layout_marginTop="10dp"
+        android:background="@color/themeColor"
+        android:gravity="center"
+        android:text="Save"
+        android:textColor="#fff"
+        android:textStyle="bold" />
+
+</RelativeLayout>
