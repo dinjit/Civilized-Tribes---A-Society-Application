@@ -1,17 +1,17 @@
 package com.example.civilizedtribes.activity;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Gallery;
 import android.widget.GridView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 
 import com.example.civilizedtribes.R;
@@ -21,17 +21,18 @@ import com.example.civilizedtribes.datamodel.entity.PhotoGallery;
 
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 public class GalleryActivity extends AppCompatActivity {
     TextView uploadImage, captureImage;
-    File storeImageFile;
-    public static final int CAPTURE_IMAGE = 100;
-    int i=0;
+    String imageFileName;
     GridView gallery;
-    List<PhotoGallery> photoGalleryList;
+    List<PhotoGallery> photoGalleryList= new ArrayList<>();
+    File file;
+    private int CAMERA_PIC_REQUEST = 1001;
+    GalleryImageAdapter galleryImageAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,72 +41,61 @@ public class GalleryActivity extends AppCompatActivity {
         uploadImage= findViewById(R.id.uploadImage);
         captureImage = findViewById(R.id.captureImage);
          gallery = (GridView) findViewById(R.id.gallery);
+        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+        StrictMode.setVmPolicy(builder.build());
+
+
 
         captureImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                i++;
-                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                    File photoFile = null;
-                    photoFile = storeImage();
-                    if (photoFile != null) {
-                        Uri photoURI = Uri.fromFile(photoFile);
-                        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                        takePictureIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-                        startActivityForResult(takePictureIntent, CAPTURE_IMAGE);
-                    }
-                }
+                Intent camera_intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                imageFileName = String.valueOf(System.currentTimeMillis())+".png";
+                File f = new File(Environment.getExternalStorageDirectory(), imageFileName);
+                camera_intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(f));
+                startActivityForResult(camera_intent, CAMERA_PIC_REQUEST);
             }
         });
-    }
-
-    private File storeImage() {
-        storeImageFile = null;
-        storeImageFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath(),
-                i+ ".jpg");
-
-
-        if (storeImageFile.exists()) {
-            storeImageFile.delete();
-        }
-        try {
-            storeImageFile.createNewFile();
-            FileOutputStream outputStream = new FileOutputStream(storeImageFile);
-            outputStream.flush();
-            outputStream.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return storeImageFile;
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == CAPTURE_IMAGE) {
-            if (resultCode == RESULT_OK) {
-                UploadImageData uploadData = new UploadImageData();
-                uploadData.execute();
-                //  saveImageDataToDatabase();
+
+        if(resultCode== Activity.RESULT_OK){
+            file = new File(Environment.getExternalStorageDirectory().toString());
+            for (File temp : file.listFiles()) {
+                if (temp.getName().equals(imageFileName)) {
+                    file = temp;
+
+                    saveImageData();
+                    FetchImageList fetchImageList = new FetchImageList();
+                    fetchImageList.execute();
+                }
             }
         }
     }
 
-    class UploadImageData extends AsyncTask<Void, Void, Void> {
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        FetchImageList fetchImageList = new FetchImageList();
+        fetchImageList.execute();
+
+    }
+
+    class FetchImageList extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
 
         @Override
         protected Void doInBackground(Void... voids) {
-            PhotoGallery photoGallery = new PhotoGallery();
-            photoGallery.imagePath=""+Environment.getExternalStorageDirectory().getAbsolutePath()+i+ ".jpg";
-            photoGallery.imageName=""+i;
 
-            //adding to database
-            DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
-                    .photoGalleryDao()
-                    .insert(photoGallery);
-            photoGalleryList =  DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
+            photoGalleryList = DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
                     .photoGalleryDao()
                     .getAllImages();
             return null;
@@ -113,11 +103,22 @@ public class GalleryActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            Toast.makeText(GalleryActivity.this, "Added Successsfully", Toast.LENGTH_SHORT).show();
             super.onPostExecute(aVoid);
+            galleryImageAdapter = new GalleryImageAdapter(GalleryActivity.this,photoGalleryList);
+            gallery.setAdapter(galleryImageAdapter);
 
-            GalleryImageAdapter galleryImageAdapter = new GalleryImageAdapter(GalleryActivity.this,new ArrayList<PhotoGallery>(photoGalleryList));
-       gallery.setAdapter(galleryImageAdapter);
         }
+    }
+    void saveImageData(){
+        new Thread(() -> {
+            PhotoGallery photoGallery = new PhotoGallery();
+            photoGallery.imagePath = file.getAbsolutePath();
+            photoGallery.imageName = imageFileName;
+            //adding to database
+            DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
+                    .photoGalleryDao()
+                    .insert(photoGallery);
+
+        }).start();
     }
 }

@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.support.v4.content.FileProvider;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,13 +21,14 @@ import com.example.civilizedtribes.datamodel.entity.PhotoGallery;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 public class GalleryImageAdapter extends BaseAdapter
 {
     private Context mContext;
-    ArrayList<PhotoGallery>photoGalleryArrayList;
+    List<PhotoGallery> photoGalleryArrayList;
 
-    public GalleryImageAdapter(Context context, ArrayList<PhotoGallery>photoGalleryArrayList)
+    public GalleryImageAdapter(Context context, List<PhotoGallery>photoGalleryArrayList)
     {
         mContext = context;
         this.photoGalleryArrayList=photoGalleryArrayList;
@@ -51,18 +53,22 @@ public class GalleryImageAdapter extends BaseAdapter
             holder = new ViewHolder();
             convertView = LayoutInflater.from(mContext).inflate(R.layout.gallery_item, parent, false);
             holder.ivGallery = (ImageView) convertView.findViewById(R.id.imgGallery);
+            holder.tvImageName = (TextView) convertView.findViewById(R.id.tvImageName);
             convertView.setTag(holder);
         }else{
             holder = (ViewHolder) convertView.getTag();
         }
-        File file = new File(photoGalleryArrayList.get(position).imagePath);
-        Uri uri = FileProvider.getUriForFile(mContext, BuildConfig.APPLICATION_ID + ".provider",file.getAbsoluteFile());
-        holder.ivGallery.setImageURI(uri);
+
+        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+        Bitmap bitmap = BitmapFactory.decodeFile(photoGalleryArrayList.get(position).imagePath,bmOptions);
+        holder.ivGallery.setImageBitmap(bitmap);
+        holder.tvImageName.setText(""+photoGalleryArrayList.get(position).imageName);
         return convertView;
     }
 
 
     class ViewHolder {
         ImageView ivGallery;
+        TextView tvImageName;
     }
 }

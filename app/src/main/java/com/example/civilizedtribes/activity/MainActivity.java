@@ -187,7 +187,7 @@ ivPhotoGallary.setOnClickListener(new View.OnClickListener() {
 
         if (requestCode == MY_CAMERA_REQUEST_CODE) {
 
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
                 Toast.makeText(this, "camera permission granted", Toast.LENGTH_LONG).show();
 
@@ -201,7 +201,7 @@ ivPhotoGallary.setOnClickListener(new View.OnClickListener() {
 
         if (requestCode == MY_STORAGE_PERMISSION) {
 
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
                 Toast.makeText(this, "storage permission granted", Toast.LENGTH_LONG).show();
 
